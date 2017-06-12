@@ -1,7 +1,11 @@
-## concurrency
+## mcdk
 
-c++14 thread pool forked from java.util.concurrency
+modern c++ develop kit forked from openjdk, based on c++14 and boost
 
-### dependency
+dependencies:
 1. [cmake](https://cmake.org/)
 2. [boost](http://www.boost.org/)
+
+forked from: [openjdk](http://openjdk.java.net/)
+
+
