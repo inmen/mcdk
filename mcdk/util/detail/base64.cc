@@ -4,10 +4,11 @@
 
 
 #include "mcdk/util/detail/base64.h"
+#include "mcdk/preprocessor/exception.h"
 
-namespace mcdk {
+namespace mc {
 
-std::tuple<int, std::string> Base64::Encoder::encode(const std::string &src) {
+std::string Base64::Encoder::encode(const std::string &src) throw(std::invalid_argument) {
     int32_t len = outLength((int32_t)src.length());
     return encode0(src.data(), 0, len);
 }
@@ -25,7 +26,7 @@ int32_t Base64::Encoder::outLength(int32_t src_len) {
     return len;
 }
 
-std::tuple<int, std::string> Base64::Encoder::encode0(char *src, int32_t off, int32_t len) {
+std::string Base64::Encoder::encode0(char *src, int32_t off, int32_t len) throw(std::invalid_argument) {
     char *base64 = is_url_ ? to_base64_url_ : to_base64_;
     int32_t sp = off;
     int32_t slen = (end - off) / 3 * 3;
@@ -75,18 +76,52 @@ std::tuple<int, std::string> Base64::Encoder::encode0(char *src, int32_t off, in
 
 }
 
-std::tuple<int, std::string> Base64::Decoder::decode(const std::string &src) {
+std::string Base64::Decoder::decode(const std::string &src) throw(std::invalid_argument) {
     int32_t len = outLength(src.data(), 0, src.length());
     return decode0(src.data(), 0, len);
 }
 
 int32_t Base64::Decoder::outLength(const char *src, int32_t sp, int32_t sl) {
+    int *base64 = is_url_ ? from_base64_url_ : from_base64_;
+    int32_t paddings = 0;
+    int32_t len = sl - sp;
+    if (len == 0)
+        return 0;
+    if (len < 2) {
+        if (is_mime_ and base64[0] == -1)
+            return 0;
+        MC_THROW(std::invalid_argument, "Input src should at least have 2 bytes for base64 bytes");
+    }
+    if (isMIME) {
+        // scan all bytes to fill out all non-alphabet. a performance
+        // trade-off of pre-scan or Arrays.copyOf
+        int n = 0;
+        while (sp < sl) {
+            int b = src[sp++] & 0xff;
+            if (b == '=') {
+                len -= (sl - sp + 1);
+                break;
+            }
+            if ((b = base64[b]) == -1)
+                n++;
+        }
+        len -= n;
+    } else {
+        if (src[sl - 1] == '=') {
+            paddings++;
+            if (src[sl - 2] == '=')
+                paddings++;
+        }
+    }
+    if (paddings == 0 && (len & 0x3) !=  0)
+        paddings = 4 - (len & 0x3);
+    return 3 * ((len + 3) / 4) - paddings;
+}
+
+std::string Base64::Decoder::decode0(const char *src, int32_t sp, int32_t sl) throw(std::invalid_argument) {
 
 }
 
-std::tuple<int, std::string> Base64::Decoder::decode0(const char *src, int32_t sp, int32_t sl) {
-
-}
 
 } //namespace mcdk
 

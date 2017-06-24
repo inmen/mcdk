@@ -5,8 +5,9 @@
 #include <cstdint>
 #include <string>
 #include <tuple>
+#include <stdexcept>
 
-namespace mcdk {
+namespace mc {
 
 class Base64 {
 public:
@@ -24,7 +25,7 @@ public:
         static const Encoder RFC4648_URL_SAFE_ { true, nullptr, -1, true };
         static const Encoder RFC2045_ { false, nullptr, -1, true };
 
-        std::tuple<int, std::string> encode(const std::string &src);
+        std::string encode(const std::string &src) throw(std::invalid_argument);
 
     private:
         const char *new_line_;
@@ -65,7 +66,7 @@ public:
         static const char CRLF_[] {'\r', '\n'};
 
         int32_t outLength(int32_t src_len);
-        std::tuple<int, std::string> encode0(char *src, int32_t off, int32_t len);
+        std::string encode0(char *src, int32_t off, int32_t len) throw(std::invalid_argument);
     };
 
     class Decoder {
@@ -79,27 +80,39 @@ public:
         static const Decoder RFC4648_URL_SAFE_ { true, nullptr, -1, true };
         static const Decoder RFC2045_ { false, nullptr, -1, true };
 
-        std::tuple<int, std::string> decode(const std::string &src);
+        std::string decode(const std::string &src) throw(std::invalid_argument);
 
     private:
         bool is_url_;
         bool is_mime_;
 
     private:
-        /**
-         * from_base64_[ Encoder::to_base64_[i] ] = i;
-         * from_base64_[ '=' ] = -2;
-         */
-        static const int from_base64_[] {
-                'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
-                'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-                'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-                'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-                '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/',
+        static const int from_base64_[256];
+        static const int from_base64_url_[256];
+
+        struct Constructor {
+            Constructor() {
+                for (auto &i : from_base64_) {
+                    i = -1;
+                }
+                for (int i = 0; i < sizeof(Encoder::to_base64_) / sizeof(Encoder::to_base64_[0]); i++) {
+                    from_base64_[ Encoder::to_base64_[i] ] = i;
+                }
+                from_base64_['='] = -2;
+                for (auto &i : from_base64_url_) {
+                    i = -1;
+                }
+                for (int i = 0; i < sizeof(Encoder::to_base64_url_) / sizeof(Encoder::to_base64_url_[0]); i++) {
+                    from_base64_url_[ Encoder::to_base64_url_[i] ] = i;
+                }
+                from_base64_url_['='] = -2;
+            }
         };
+        // static call Constructor::Constructor()
+        static Constructor constructor_{};
 
         int32_t outLength(const char *src, int32_t sp, int32_t sl);
-        std::tuple<int, std::string> decode0(const char *src, int32_t sp, int32_t sl);
+        std::string decode0(const char *src, int32_t sp, int32_t sl) throw(std::invalid_argument);
     };
 
 private:
