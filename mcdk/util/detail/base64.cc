@@ -119,7 +119,7 @@ int32_t Base64::Decoder::outLength(const char *src, int32_t sp, int32_t sl) {
 }
 
 std::string Base64::Decoder::decode0(const char *src, int32_t sp, int32_t sl) throw(std::invalid_argument) {
-
+    return "";
 }
 
 
