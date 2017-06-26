@@ -8,7 +8,7 @@
 #include <stdexcept>
 #include <boost/noncopyable.hpp>
 #include <algorithm>
-#include "mcdk/preprocessor/exception.h"
+#include "mcdk/util/throw.h"
 
 namespace mc {
 

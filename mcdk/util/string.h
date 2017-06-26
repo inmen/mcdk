@@ -1,14 +1,17 @@
-#ifndef MCDK_UTIL_TO_STRING_H
-#define MCDK_UTIL_TO_STRING_H
+#ifndef MCDK_UTIL_STRING_H
+#define MCDK_UTIL_STRING_H
 
 #include <string>
+#include <sstream>
 
 namespace mc {
 
 
 template <class T>
 inline std::string toString(T && t) {
-    return std::to_string(t);
+    std::stringstream ss;
+    ss << t;
+    return ss.c_str();
 }
 inline std::string toString(std::string && msg) {
     return msg;

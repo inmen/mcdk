@@ -1,7 +1,7 @@
-#ifndef MCDK_PREPROCESSOR_EXCEPTION_H
-#define MCDK_PREPROCESSOR_EXCEPTION_H
+#ifndef MCDK_UTIL_THROW_H
+#define MCDK_UTIL_THROW_H
 
-#include "mcdk/util/to_string.h"
+#include "mcdk/util/string.h"
 
 namespace mc {
 
@@ -11,3 +11,4 @@ namespace mc {
 
 
 #endif
+
