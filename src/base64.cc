@@ -30,6 +30,25 @@ const Base64::Encoder & Base64::Encoder::RFC2045() {
     return rfc2045;
 }
 
+const char Base64::Encoder::to_base64_[64] = {
+        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+        'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+        'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'
+};
+
+const char Base64::Encoder::to_base64_url_[64] = {
+        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+        'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+        'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '_'
+};
+
+const int32_t Base64::Encoder::MIME_LINE_MAX_ = 76 ;
+const char Base64::Encoder::CRLF_[2] = {'\r', '\n'};
+
 std::string Base64::Encoder::encode(const std::string &src) const throw(std::invalid_argument) {
     int32_t len = outLength((int32_t)src.length());
     std::string dst;
@@ -66,10 +85,10 @@ int32_t Base64::Encoder::encode0(const char *src, int32_t off, int32_t end, char
             int32_t bits = (src[sp0++] & 0xff) << 16 |
                            (src[sp0++] & 0xff) << 8 |
                            (src[sp0++] & 0xff);
-            dst[dp0++] = (char) base64[(bits >> 18) & 0x3f];
-            dst[dp0++] = (char) base64[(bits >> 12) & 0x3f];
-            dst[dp0++] = (char) base64[(bits >> 6) & 0x3f];
-            dst[dp0++] = (char) base64[bits & 0x3f];
+            dst[dp0++] = base64[(bits >> 18) & 0x3f];
+            dst[dp0++] = base64[(bits >> 12) & 0x3f];
+            dst[dp0++] = base64[(bits >> 6) & 0x3f];
+            dst[dp0++] = base64[bits & 0x3f];
         }
         int32_t dlen = (sl0 - sp) / 3 * 4;
         dp += dlen;
@@ -91,8 +110,8 @@ int32_t Base64::Encoder::encode0(const char *src, int32_t off, int32_t end, char
             }
         } else {
             int b1 = src[sp++] & 0xff;
-            dst[dp++] = (char) base64[(b0 << 4) & 0x3f | (b1 >> 4)];
-            dst[dp++] = (char) base64[(b1 << 2) & 0x3f];
+            dst[dp++] = base64[(b0 << 4) & 0x3f | (b1 >> 4)];
+            dst[dp++] = base64[(b1 << 2) & 0x3f];
             if (padding_) {
                 dst[dp++] = '=';
             }
@@ -105,6 +124,7 @@ Base64::Decoder::Decoder(bool is_url, bool is_mime)
         : is_url_(is_url),
           is_mime_(is_mime) {
 }
+//Base64::Decoder::Constructor constructor_;
 
 const Base64::Decoder & Base64::Decoder::RFC4648() {
     static Base64::Decoder rfc4648(false, false);
@@ -119,6 +139,9 @@ const Base64::Decoder & Base64::Decoder::RFC2045() {
     return rfc2045;
 }
 
+int Base64::Decoder::from_base64_[256] = { 0 };
+int Base64::Decoder::from_base64_url_[256] = { 0 };
+
 std::string Base64::Decoder::decode(const std::string &src) const throw(std::invalid_argument) {
     int32_t len = outLength(src.data(), 0, src.length());
     std::string dst;
@@ -130,7 +153,7 @@ std::string Base64::Decoder::decode(const std::string &src) const throw(std::inv
 }
 
 int32_t Base64::Decoder::outLength(const char *src, int32_t sp, int32_t sl) const throw(std::invalid_argument) {
-    int *base64 = is_url_ ? from_base64_url_ : from_base64_;
+    int *base64 = is_url_ ? (int*)from_base64_url_ : (int*)from_base64_;
     int32_t paddings = 0;
     int32_t len = sl - sp;
     if (len == 0)
@@ -167,7 +190,7 @@ int32_t Base64::Decoder::outLength(const char *src, int32_t sp, int32_t sl) cons
 }
 
 int32_t Base64::Decoder::decode0(const char *src, int32_t sp, int32_t sl, char *dst) const throw(std::invalid_argument) {
-    int *base64 = is_url_ ? from_base64_url_ : from_base64_;
+    int *base64 = is_url_ ? (int*)from_base64_url_ : (int*)from_base64_;
     int32_t dp = 0;
     int32_t bits = 0;
     int32_t shiftto = 18;       // pos of first char of 4-char atom
