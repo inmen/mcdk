@@ -3,7 +3,7 @@
 
 #include "mcdk/util/string.h"
 
-#define MC_PP_LOC (mc::toString("[" __FILE__) + " " + __FUNCTION__ + ":" + mc::toString(__LINE__) + "]")
+#define MC_PP_LOC (mc::toString(__FILE__) + ":" + mc::toString(__LINE__) + " " + __FUNCTION__)
 
 
 
