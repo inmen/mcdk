@@ -6,8 +6,8 @@
 #include <string>
 #include <tuple>
 #include <stdexcept>
-#include <boost/noncopyable.hpp>
 #include <algorithm>
+#include <boost/noncopyable.hpp>
 #include "mcdk/util/throw.h"
 
 namespace mc {
@@ -15,11 +15,12 @@ namespace mc {
 class Base64 : boost::noncopyable {
 public:
     class Decoder;
-    class Encoder : boost::noncopyable {
+    class Encoder {
     private:
         friend class Decoder;
         friend class Base64;
-        Encoder(bool is_url, char *new_line, int32_t new_line_len, int32_t line_max, bool padding);
+
+        Encoder(bool is_url, const std::string &new_line, int32_t line_max, bool padding);
         static const Encoder & RFC4648();
         static const Encoder & RFC4648_URL_SAFE();
         static const Encoder & RFC2045();
@@ -29,8 +30,7 @@ public:
 
     private:
         bool is_url_;
-        const char *new_line_;
-        int32_t new_line_len_;
+        const std::string new_line_;
         const int32_t line_max_;
         bool padding_;
 
@@ -49,13 +49,13 @@ public:
         static const char to_base64_url_[64];
 
         static const int32_t MIME_LINE_MAX_;
-        static const char CRLF_[2];
+        static const std::string CRLF_;
 
         int32_t outLength(int32_t src_len) const;
         int32_t encode0(const char *src, int32_t off, int32_t end, char *dst) const throw(std::invalid_argument);
     }; // class Encoder
 
-    class Decoder : boost::noncopyable {
+    class Decoder {
     private:
         friend class Encoder;
         friend class Base64;
@@ -105,6 +105,7 @@ public:
     static const Encoder& getEncoder();
     static const Encoder& getUrlEncoder();
     static const Encoder& getMimeEncoder();
+    static Encoder getMimeEncoder(int32_t line_length, const std::string &line_separator);
     static const Decoder& getDecoder();
     static const Decoder& getUrlDecoder();
     static const Decoder& getMimeDecoder();

@@ -11,7 +11,6 @@ void testEncodeToString(const mc::Base64::Encoder &encoder) {
     assert(s.find("$$$") == std::string::npos);
 }
 
-
 void testEncodeToStringWithLongInputData(const mc::Base64::Encoder &encoder) {
     const char *secondTestBuffer = "api/java_util/Base64/index.html#GetEncoderMimeCustom[noLineSeparatorInEncodedString]";
     std::string s = encoder.encode(secondTestBuffer);
@@ -19,9 +18,9 @@ void testEncodeToStringWithLongInputData(const mc::Base64::Encoder &encoder) {
     assert(s.find("$$$") == std::string::npos);
 }
 
-
 int main(int argc, char *argv[]) {
-    testEncodeToString(mc::Base64::getEncoder());
-    testEncodeToStringWithLongInputData(mc::Base64::getEncoder());
+    const mc::Base64::Encoder encoder = mc::Base64::getMimeEncoder(0, "$$$");
+    testEncodeToString(encoder);
+    testEncodeToStringWithLongInputData(encoder);
     return 0;
 }

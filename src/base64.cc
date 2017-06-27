@@ -3,30 +3,29 @@
 #include <string>
 #include <tuple>
 #include <stdexcept>
-#include <boost/noncopyable.hpp>
+#include <cassert>
 #include <algorithm>
 #include "mcdk/util/throw.h"
 
 namespace mc {
 
-Base64::Encoder::Encoder(bool is_url, char *new_line, int32_t new_line_len, int32_t line_max, bool padding)
+Base64::Encoder::Encoder(bool is_url, const std::string &new_line, int32_t line_max, bool padding)
         : is_url_(is_url),
           new_line_(new_line),
-          new_line_len_(new_line_len),
           line_max_(line_max),
           padding_(padding) {
 }
 
 const Base64::Encoder & Base64::Encoder::RFC4648() {
-    static Base64::Encoder rfc4648( false, nullptr, 0, -1, true );
+    static Base64::Encoder rfc4648( false, "", -1, true );
     return rfc4648;
 }
 const Base64::Encoder & Base64::Encoder::RFC4648_URL_SAFE() {
-    static Base64::Encoder rfc4648_url_safe( true, nullptr, 0, -1, true );
+    static Base64::Encoder rfc4648_url_safe( true, "", -1, true );
     return rfc4648_url_safe;
 }
 const Base64::Encoder & Base64::Encoder::RFC2045() {
-    static Base64::Encoder rfc2045(false, (char*)CRLF_, (int32_t)(sizeof(CRLF_) / sizeof(CRLF_[0])), MIME_LINE_MAX_, true );
+    static Base64::Encoder rfc2045(false, CRLF_, MIME_LINE_MAX_, true );
     return rfc2045;
 }
 
@@ -47,7 +46,7 @@ const char Base64::Encoder::to_base64_url_[64] = {
 };
 
 const int32_t Base64::Encoder::MIME_LINE_MAX_ = 76 ;
-const char Base64::Encoder::CRLF_[2] = {'\r', '\n'};
+const std::string Base64::Encoder::CRLF_ = "\r\n";
 
 std::string Base64::Encoder::encode(const std::string &src) const throw(std::invalid_argument) {
     int32_t len = outLength((int32_t)src.length());
@@ -68,7 +67,7 @@ int32_t Base64::Encoder::outLength(int32_t src_len) const {
         len = 4 * (src_len / 3) + (n == 0 ? 0 : n + 1);
     }
     if (line_max_ > 0)                                  // line separators
-        len += (len - 1) / line_max_ * (new_line_len_);
+        len += (len - 1) / line_max_ * (new_line_.length());
     return len;
 }
 int32_t Base64::Encoder::encode0(const char *src, int32_t off, int32_t end, char *dst) const throw(std::invalid_argument) {
@@ -94,7 +93,7 @@ int32_t Base64::Encoder::encode0(const char *src, int32_t off, int32_t end, char
         dp += dlen;
         sp = sl0;
         if (dlen == line_max_ and sp < end) {
-            for (int32_t i = 0; i < new_line_len_; i++) {
+            for (int32_t i = 0; i < new_line_.length(); i++) {
                 dst[dp++] = new_line_[i];
             }
         }
@@ -252,6 +251,19 @@ const Base64::Encoder& Base64::getUrlEncoder() {
 const Base64::Encoder& Base64::getMimeEncoder() {
     return Encoder::RFC2045();
 }
+Base64::Encoder Base64::getMimeEncoder(int32_t line_length, const std::string &line_separator) {
+    assert(line_separator.length() > 0);
+    int *base64 = (int*)Base64::Decoder::from_base64_;
+    for (const char &b : line_separator) {
+        if (base64[b & 0xff] != -1)
+            MC_THROW(std::invalid_argument, "Illegal base64 line separator character 0x" + toString(b));
+    }
+    if (line_length <= 0) {
+        return Encoder::RFC4648();
+    }
+    return Base64::Encoder(false, line_separator, line_length >> 2 << 2, true);
+}
+
 const Base64::Decoder& Base64::getDecoder() {
     return Decoder::RFC4648();
 }
