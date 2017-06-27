@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 14)
 add_definitions(-std=c++14)
 
 include_directories(.)
-include_directories( ../../source_code/boost_1_64_0 )
+include_directories( ../boost )
 
 add_subdirectory(src)
 add_subdirectory(tests)

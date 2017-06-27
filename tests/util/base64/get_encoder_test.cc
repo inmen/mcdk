@@ -12,8 +12,16 @@ void testEncodeToString(const mc::Base64::Encoder &encoder) {
 }
 
 
+void testEncodeToStringWithLongInputData(const mc::Base64::Encoder &encoder) {
+    const char *secondTestBuffer = "api/java_util/Base64/index.html#GetEncoderMimeCustom[noLineSeparatorInEncodedString]";
+    std::string s = encoder.encode(secondTestBuffer);
+    std::cout << MC_PP_LOC << std::endl;
+    assert(s.find("$$$") == s.length());
+}
+
 
 int main(int argc, char *argv[]) {
-
+    testEncodeToString(mc::Base64::getEncoder());
+    testEncodeToStringWithLongInputData(mc::Base64::getEncoder());
     return 0;
 }

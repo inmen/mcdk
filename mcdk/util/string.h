@@ -14,32 +14,42 @@ inline std::string toString(T && t) {
     return ss.str();
 }
 
-    /*
-inline std::string toString(std::string && msg) {
-    return msg;
+inline std::string toString(const std::string & s) {
+    return s;
 }
-inline std::string toString(char *msg) {
-    return std::string(msg);
+
+inline std::string toString(const char * s) {
+    return std::string(s);
 }
-inline std::string toString(const char *msg) {
-    return std::string(msg);
+
+template <class T1, class T2>
+inline std::string toString(std::pair<T1, T2> && p, const std::string & delim = ",", const std::string & lborder = "[", const std::string & rborder = "]") {
+    std::stringstream ss;
+    ss << lborder << p.first << delim << p.second << rborder;
+    return ss.str();
 }
-inline std::string toString(char && c) {
-    std::string r;
-    r.push_back(c);
-    return r;
+
+template <class ForwardIter>
+inline std::string toString(ForwardIter iter_begin, ForwardIter iter_end, const std::string & delim = ",", const std::string & lborder = "[", const std::string & rborder = "]") {
+    std::stringstream ss;
+    ss << lborder;
+    for (; iter_begin != iter_end; ++iter_begin) {
+        ss << *iter_begin << delim;
+    }
+    ss << rborder;
+    return ss.str();
 }
-inline std::string toString(const char && c) {
-    std::string r;
-    r.push_back(c);
-    return r;
-}
-inline std::string toString(char c) {
-    std::string r;
-    r.push_back(c);
-    return r;
-}
-     */
+
+
+template <class T>
+struct FromString {
+    T operator()(std::string && s) {
+        std::stringstream ss(s);
+        T t;
+        ss >> t;
+        return t;
+    }
+};
 
 
 }
