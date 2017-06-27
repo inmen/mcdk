@@ -11,8 +11,10 @@ template <class T>
 inline std::string toString(T && t) {
     std::stringstream ss;
     ss << t;
-    return ss.c_str();
+    return ss.str();
 }
+
+    /*
 inline std::string toString(std::string && msg) {
     return msg;
 }
@@ -37,6 +39,7 @@ inline std::string toString(char c) {
     r.push_back(c);
     return r;
 }
+     */
 
 
 }

@@ -3,3 +3,4 @@
 *.idea
 .idea
 cmake-build-debug
+boost_1_64_0
