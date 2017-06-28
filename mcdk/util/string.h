@@ -18,9 +18,11 @@ inline std::string toString(const std::string & s) {
     return s;
 }
 
+    /*
 inline std::string toString(const char * s) {
     return std::string(s);
 }
+     */
 
 template <class T1, class T2>
 inline std::string toString(std::pair<T1, T2> && p, const std::string & delim = ",", const std::string & lborder = "[", const std::string & rborder = "]") {
@@ -43,11 +45,18 @@ inline std::string toString(ForwardIter iter_begin, ForwardIter iter_end, const 
 
 template <class T>
 struct FromString {
-    T operator()(std::string && s) {
+    T operator()(const std::string && s) {
         std::stringstream ss(s);
         T t;
         ss >> t;
         return t;
+    }
+};
+
+template <>
+struct FromString<std::string> {
+    std::string operator()(const std::string & s) {
+        return s;
     }
 };
 

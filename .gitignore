@@ -7,4 +7,14 @@ CMakeCache.txt
 CMakeFiles
 Makefile
 cmake_install.cmake
-
+*.vs
+.vs
+*.vcxproj
+.vcxproj
+*.filters
+.filters
+*.db
+.db
+*.sln
+*.tlog
+*.dir
