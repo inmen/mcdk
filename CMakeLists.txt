@@ -8,7 +8,7 @@ if (CMAKE_COMPILER_IS_GNUCXX)
     add_definitions(-std=c++14)
 endif()
 
-if (CMAKE_COMPILER_IS_MSVC)
+if (MSVC)
     add_definitions( /std:c++14 )
 endif()
 

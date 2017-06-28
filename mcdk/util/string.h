@@ -44,7 +44,7 @@ inline std::string toString(ForwardIter iter_begin, ForwardIter iter_end, const 
 
 
 template <class T>
-struct FromString {
+struct fromString {
     T operator()(const std::string && s) {
         std::stringstream ss(s);
         T t;
@@ -54,7 +54,7 @@ struct FromString {
 };
 
 template <>
-struct FromString<std::string> {
+struct fromString<std::string> {
     std::string operator()(const std::string & s) {
         return s;
     }
