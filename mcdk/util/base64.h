@@ -26,11 +26,12 @@ public:
 
     public:
         std::string Encode(const std::string &src) const throw(std::invalid_argument);
+        Encoder WithoutPadding();
 
     private:
         bool is_url_;
-        const std::string new_line_;
-        const int32_t line_max_;
+        std::string new_line_;
+        int32_t line_max_;
         bool padding_;
 
     private:

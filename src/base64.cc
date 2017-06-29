@@ -18,15 +18,15 @@ Base64::Encoder::Encoder(bool is_url, const std::string &new_line, int32_t line_
 }
 
 const Base64::Encoder & Base64::Encoder::RFC4648() {
-    static Base64::Encoder rfc4648( false, "", -1, true );
+    static Base64::Encoder rfc4648(false, "", -1, true);
     return rfc4648;
 }
 const Base64::Encoder & Base64::Encoder::RFC4648_URL_SAFE() {
-    static Base64::Encoder rfc4648_url_safe( true, "", -1, true );
+    static Base64::Encoder rfc4648_url_safe(true, "", -1, true);
     return rfc4648_url_safe;
 }
 const Base64::Encoder & Base64::Encoder::RFC2045() {
-    static Base64::Encoder rfc2045(false, CRLF_, MIME_LINE_MAX_, true );
+    static Base64::Encoder rfc2045(false, CRLF_, MIME_LINE_MAX_, true);
     return rfc2045;
 }
 
@@ -57,6 +57,12 @@ std::string Base64::Encoder::Encode(const std::string &src) const throw(std::inv
     if (ret != dst.length())
         return dst.substr(0, (size_t)ret);
     return dst;
+}
+
+Base64::Encoder Base64::Encoder::WithoutPadding() {
+    if (not padding_)
+        return *this;
+    return Encoder(is_url_, new_line_, line_max_, false);
 }
 
 int32_t Base64::Encoder::OutLength(int32_t src_len) const {

@@ -6,8 +6,6 @@
 #include <cstdlib>
 #undef NDEBUG
 
-static sun.misc.BASE64Encoder sunmisc = new sun.misc.BASE64Encoder();
-
 static const char *ba_null = nullptr;
 static const std::string str_null = "";
 static const char *bb_null = nullptr;
@@ -58,18 +56,20 @@ void CheckEqual(const std::string &r1, const std::string &r2, std::string msg) {
     assert(std::string(r1) == std::string(r2));
 }
 
-void Test(const mc::Base64::Encoder & enc, const mc::Base64::Decoder &dec, int num_runs, int num_bytes) {
+void Test(mc::Base64::Encoder enc, mc::Base64::Decoder dec, int num_runs, int num_bytes) {
     enc.Encode("");
     dec.Decode("");
 
     for (bool no_padding : { false, true } ) {
         if (no_padding) {
-            enc = enc.no_padding();
+            enc = enc.WithoutPadding();
         }
         for (int i=0; i<num_runs; i++) {
-            for (int j=1; j<num_bytes; j++) {
+            for (int j = 1; j < num_bytes; j++) {
                 char *orig = new char[j];
-                rnd.nextBytes(orig);
+                for (int k = 0; k < j; k++) {
+                    orig[k] = (char)(rand() % 127);
+                }
 
                 // --------Testing Encode/Decode(byte[])--------
                 std::string encoded = enc.Encode(orig);
@@ -81,37 +81,18 @@ void Test(const mc::Base64::Encoder & enc, const mc::Base64::Decoder &dec, int n
                 }
                 // compare to sun.misc.BASE64Encoder
 
-                std::string encoded2 = sunmisc.Encode(orig);
-                if (!no_padding) {    // don't Test for no_padding()
-                    assert(Normalize(encoded) == Normalize(encoded2));
-                }
-                // remove padding '=' to Test non-padding decoding case
-                if (encoded[encoded.length() -2] == '=')
-                    encoded2 = encoded.substr(0, encoded.length()-2);
-                else if (encoded.back() == '=')
-                    encoded2 = encoded.substr(0, encoded.length()-1);
-                else
-                    encoded2 = "";
-
                 // --------Testing encodetostd::string(byte[])/Decode(std::string)--------
                 std::string str = enc.Encode(orig);
                 assert(str == encoded);
                 std::string buf = dec.Decode(encoded);
                 assert(buf == orig);
 
-                if (encoded2 != "") {
-                    buf = dec.Decode(encoded2);
-                    assert(buf == orig);
-                }
-
                 //-------- Testing Encode/Decode(Buffer)--------
                 TestEncode(enc, orig, encoded);
                 TestDecode(dec, encoded, orig);
-
-                if (encoded2 != "")
-                    TestDecode(dec, encoded2, orig);
-        }
-    }
+            } //for (int j = 1; j < num_bytes; j++) {
+        }//for (int i=0; i<num_runs; i++) {
+    } //for (bool no_padding : { false, true } ) {
 }
 
 
