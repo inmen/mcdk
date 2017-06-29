@@ -18,3 +18,6 @@ cmake_install.cmake
 *.sln
 *.tlog
 *.dir
+*.a
+*.so
+*.dll
