@@ -10,25 +10,18 @@
 
 namespace mc {
 
-Base64::Encoder::Encoder(bool is_url, const std::string &new_line, int32_t line_max, bool padding)
+Base64::Encoder::Encoder(bool is_url, const std::string &new_line, int32_t line_max, bool do_padding)
         : is_url_(is_url),
           new_line_(new_line),
           line_max_(line_max),
-          padding_(padding) {
+          do_padding_(do_padding) {
 }
 
-const Base64::Encoder & Base64::Encoder::RFC4648() {
-    static Base64::Encoder rfc4648(false, "", -1, true);
-    return rfc4648;
-}
-const Base64::Encoder & Base64::Encoder::RFC4648_URL_SAFE() {
-    static Base64::Encoder rfc4648_url_safe(true, "", -1, true);
-    return rfc4648_url_safe;
-}
-const Base64::Encoder & Base64::Encoder::RFC2045() {
-    static Base64::Encoder rfc2045(false, CRLF_, MIME_LINE_MAX_, true);
-    return rfc2045;
-}
+const Base64::Encoder Base64::Encoder::RFC4648 = Base64::Encoder( false, "", -1, true );
+
+const Base64::Encoder Base64::Encoder::RFC4648_URL_SAFE = Base64::Encoder( true, "", -1, true );
+
+const Base64::Encoder Base64::Encoder::RFC2045 = Base64::Encoder( false, CRLF_, MIME_LINE_MAX_, true );
 
 const char Base64::Encoder::to_base64_[64] = {
         'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
@@ -60,14 +53,14 @@ std::string Base64::Encoder::Encode(const std::string &src) const throw(std::inv
 }
 
 Base64::Encoder Base64::Encoder::WithoutPadding() {
-    if (not padding_)
+    if (not do_padding_)
         return *this;
     return Encoder(is_url_, new_line_, line_max_, false);
 }
 
 int32_t Base64::Encoder::OutLength(int32_t src_len) const {
     int32_t len = 0;
-    if (padding_) {
+    if (do_padding_) {
         len = 4 * ((src_len + 2) / 3);
     } else {
         int32_t n = src_len % 3;
@@ -77,6 +70,7 @@ int32_t Base64::Encoder::OutLength(int32_t src_len) const {
         len += (len - 1) / line_max_ * (new_line_.length());
     return len;
 }
+
 int32_t Base64::Encoder::Encode0(const char *src, int32_t off, int32_t end, char *dst) const throw(std::invalid_argument) {
     char *base64 = is_url_ ? (char*)to_base64_url_ : (char*)to_base64_;
     int32_t sp = off;
@@ -88,12 +82,12 @@ int32_t Base64::Encoder::Encode0(const char *src, int32_t off, int32_t end, char
     while (sp < sl) {
         int32_t sl0 = std::min(sp + slen, sl);
         for (int32_t sp0 = sp, dp0 = dp; sp0 < sl0;) {
-            int32_t bits = ((src[sp0++] & 0xff) << 16) |
-                    ((src[sp0++] & 0xff) << 8) |
-                    (src[sp0++] & 0xff);
-            dst[dp0++] = base64[(bits >> 18) & 0x3f];
-            dst[dp0++] = base64[(bits >> 12) & 0x3f];
-            dst[dp0++] = base64[(bits >> 6) & 0x3f];
+            int32_t bits = (src[sp0++] & 0xff) << 16;
+            bits |= (src[sp0++] & 0xff) << 8;
+            bits |= src[sp0++] & 0xff;
+            dst[dp0++] = base64[((uint32_t)bits >> 18) & 0x3f];
+            dst[dp0++] = base64[((uint32_t)bits >> 12) & 0x3f];
+            dst[dp0++] = base64[((uint32_t)bits >> 6) & 0x3f];
             dst[dp0++] = base64[bits & 0x3f];
         }
         int32_t dlen = (sl0 - sp) / 3 * 4;
@@ -110,7 +104,7 @@ int32_t Base64::Encoder::Encode0(const char *src, int32_t off, int32_t end, char
         dst[dp++] = base64[b0 >> 2];
         if (sp == end) {
             dst[dp++] = base64[(b0 << 4) & 0x3f];
-            if (padding_) {
+            if (do_padding_) {
                 dst[dp++] = '=';
                 dst[dp++] = '=';
             }
@@ -118,7 +112,7 @@ int32_t Base64::Encoder::Encode0(const char *src, int32_t off, int32_t end, char
             int b1 = src[sp++] & 0xff;
             dst[dp++] = base64[((b0 << 4) & 0x3f) | (b1 >> 4)];
             dst[dp++] = base64[(b1 << 2) & 0x3f];
-            if (padding_) {
+            if (do_padding_) {
                 dst[dp++] = '=';
             }
         }
@@ -132,18 +126,11 @@ Base64::Decoder::Decoder(bool is_url, bool is_mime)
 }
 //Base64::Decoder::Constructor constructor_;
 
-const Base64::Decoder & Base64::Decoder::RFC4648() {
-    static Base64::Decoder rfc4648(false, false);
-    return rfc4648;
-}
-const Base64::Decoder & Base64::Decoder::RFC4648_URL_SAFE() {
-    static Base64::Decoder rfc4648_url_safe(true, false);
-    return rfc4648_url_safe;
-}
-const Base64::Decoder & Base64::Decoder::RFC2045() {
-    static Decoder rfc2045(false, true);
-    return rfc2045;
-}
+const Base64::Decoder Base64::Decoder::RFC4648 = Base64::Decoder(false, false);
+
+const Base64::Decoder Base64::Decoder::RFC4648_URL_SAFE = Base64::Decoder(true, false);
+
+const Base64::Decoder Base64::Decoder::RFC2045 = Base64::Decoder(false, true);
 
 int Base64::Decoder::from_base64_[256] = { 0 };
 int Base64::Decoder::from_base64_url_[256] = { 0 };
@@ -250,13 +237,13 @@ int32_t Base64::Decoder::Decode0(const char *src, int32_t sp, int32_t sl, char *
 }
 
 const Base64::Encoder& Base64::GetEncoder() {
-    return Encoder::RFC4648();
+    return Encoder::RFC4648;
 }
 const Base64::Encoder& Base64::GetUrlEncoder() {
-    return Encoder::RFC4648_URL_SAFE();
+    return Encoder::RFC4648_URL_SAFE;
 }
 const Base64::Encoder& Base64::GetMimeEncoder() {
-    return Encoder::RFC2045();
+    return Encoder::RFC2045;
 }
 Base64::Encoder Base64::GetMimeEncoder(int32_t line_length, const std::string &line_separator) {
     assert(line_separator.length() > 0);
@@ -266,19 +253,19 @@ Base64::Encoder Base64::GetMimeEncoder(int32_t line_length, const std::string &l
             throw std::invalid_argument(MC_PP_LOC + "Illegal base64 line separator character 0x" + ToString(b));
     }
     if (line_length <= 0) {
-        return Encoder::RFC4648();
+        return Encoder::RFC4648;
     }
     return Base64::Encoder(false, line_separator, line_length >> 2 << 2, true);
 }
 
 const Base64::Decoder& Base64::GetDecoder() {
-    return Decoder::RFC4648();
+    return Decoder::RFC4648;
 }
 const Base64::Decoder& Base64::GetUrlDecoder() {
-    return Decoder::RFC4648_URL_SAFE();
+    return Decoder::RFC4648_URL_SAFE;
 }
 const Base64::Decoder& Base64::GetMimeDecoder() {
-    return Decoder::RFC2045();
+    return Decoder::RFC2045;
 }
 
 }
