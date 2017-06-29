@@ -1,11 +1,10 @@
-#ifndef MCDK_UTIL_STRING_H
-#define MCDK_UTIL_STRING_H
+#ifndef MCDK_LANG_STRING_H
+#define MCDK_LANG_STRING_H
 
 #include <string>
 #include <sstream>
 
 namespace mc {
-
 
 template <class T>
 inline std::string ToString(T && t) {
@@ -18,11 +17,11 @@ inline std::string ToString(const std::string & s) {
     return s;
 }
 
-    /*
+/*
 inline std::string ToString(const char * s) {
-    return std::string(s);
+return std::string(s);
 }
-     */
+ */
 
 template <class T1, class T2>
 inline std::string ToString(std::pair<T1, T2> && p, const std::string & delim = ",", const std::string & lborder = "[", const std::string & rborder = "]") {

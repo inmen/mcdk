@@ -1,9 +1,9 @@
 #include "mcdk/util/base64.h"
-#include "mcdk/util/preprocessor.h"
-#include "mcdk/util/string.h"
 #include <iostream>
 #include <cassert>
 #include <cstdlib>
+#include "mcdk/util/preprocessor.h"
+#include "mcdk/util/string.h"
 #undef NDEBUG
 
 static const char *ba_null = nullptr;
