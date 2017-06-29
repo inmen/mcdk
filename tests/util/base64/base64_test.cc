@@ -10,13 +10,13 @@ static sun.misc.BASE64Encoder sunmisc = new sun.misc.BASE64Encoder();
 
 static const char *ba_null = nullptr;
 static const std::string str_null = "";
-static const char *bb_null = null;
+static const char *bb_null = nullptr;
 
 // remove line feeds,
-const std::string normalize(const std::string &src) {
+const std::string Normalize(const std::string &src) {
     int n = 0;
     bool has_url = false;
-    for (int i = 0; i < src.length; i++) {
+    for (int i = 0; i < src.length(); i++) {
         if (src[i] == '\r' or src[i] == '\n')
             n++;
         if (src[i] == '-' or src[i] == '_')
@@ -26,7 +26,7 @@ const std::string normalize(const std::string &src) {
         return src;
     char *ret = new char[src.length() - n];
     int j = 0;
-    for (int i = 0; i < src.length; i++) {
+    for (int i = 0; i < src.length(); i++) {
         if (src[i] == '-')
             ret[j++] = '+';
         else if (src[i] == '_')
@@ -37,19 +37,30 @@ const std::string normalize(const std::string &src) {
     return ret;
 }
 
-void testEncode(const Base64::Encoder &enc, const std::string &bin, const std::string &expected) {
-    const std::string bout = enc.encode(bin);
+void TestEncode(const mc::Base64::Encoder &enc, const std::string &bin, const std::string &expected) {
+    const std::string bout = enc.Encode(bin);
     assert(bout == expected);
 }
-void testDecode(const Base64::Decoder &dec, const std::string &bin, const std::string &expected) {
-    const std::string bout = dec.decode(bin);
+void TestDecode(const mc::Base64::Decoder &dec, const std::string &bin, const std::string &expected) {
+    const std::string bout = dec.Decode(bin);
     assert(bout == expected);
 }
 
 
-void test(Base64::Encoder & enc, Base64::Decoder &dec, int num_runs, int num_bytes) {
-    enc.encode(new byte[0]);
-    dec.decode(new byte[0]);
+void CheckEqual(int v1, int v2, std::string msg) {
+    assert(v1 == v2);
+}
+
+void CheckEqual(char *r1, char *r2, std::string msg) {
+    assert(std::string(r1) == std::string(r2));
+}
+void CheckEqual(const std::string &r1, const std::string &r2, std::string msg) {
+    assert(std::string(r1) == std::string(r2));
+}
+
+void Test(const mc::Base64::Encoder & enc, const mc::Base64::Decoder &dec, int num_runs, int num_bytes) {
+    enc.Encode("");
+    dec.Decode("");
 
     for (bool no_padding : { false, true } ) {
         if (no_padding) {
@@ -60,9 +71,9 @@ void test(Base64::Encoder & enc, Base64::Decoder &dec, int num_runs, int num_byt
                 char *orig = new char[j];
                 rnd.nextBytes(orig);
 
-                // --------testing encode/decode(byte[])--------
-                std::string encoded = enc.encode(orig);
-                std::string decoded = dec.decode(encoded);
+                // --------Testing Encode/Decode(byte[])--------
+                std::string encoded = enc.Encode(orig);
+                std::string decoded = dec.Decode(encoded);
                 assert(orig == decoded);
 
                 if (no_padding) {
@@ -70,11 +81,11 @@ void test(Base64::Encoder & enc, Base64::Decoder &dec, int num_runs, int num_byt
                 }
                 // compare to sun.misc.BASE64Encoder
 
-                std::string encoded2 = sunmisc.encode(orig).getBytes("ASCII");
-                if (!no_padding) {    // don't test for no_padding()
-                    assert(normalize(encoded), normalize(encoded2));
+                std::string encoded2 = sunmisc.Encode(orig);
+                if (!no_padding) {    // don't Test for no_padding()
+                    assert(Normalize(encoded) == Normalize(encoded2));
                 }
-                // remove padding '=' to test non-padding decoding case
+                // remove padding '=' to Test non-padding decoding case
                 if (encoded[encoded.length() -2] == '=')
                     encoded2 = encoded.substr(0, encoded.length()-2);
                 else if (encoded.back() == '=')
@@ -82,71 +93,74 @@ void test(Base64::Encoder & enc, Base64::Decoder &dec, int num_runs, int num_byt
                 else
                     encoded2 = "";
 
-                // --------testing encodetostd::string(byte[])/decode(std::string)--------
-                std::string str = enc.encode(orig);
+                // --------Testing encodetostd::string(byte[])/Decode(std::string)--------
+                std::string str = enc.Encode(orig);
                 assert(str == encoded);
-                std::string buf = dec.decode(encoded);
+                std::string buf = dec.Decode(encoded);
                 assert(buf == orig);
 
                 if (encoded2 != "") {
-                    buf = dec.decode(encoded2);
+                    buf = dec.Decode(encoded2);
                     assert(buf == orig);
                 }
 
-                //-------- testing encode/decode(Buffer)--------
-                testEncode(enc, orig, encoded);
-                testDecode(dec, encoded, orig);
+                //-------- Testing Encode/Decode(Buffer)--------
+                TestEncode(enc, orig, encoded);
+                TestDecode(dec, encoded, orig);
 
                 if (encoded2 != "")
-                    testDecode(dec, encoded2, orig);
+                    TestDecode(dec, encoded2, orig);
         }
     }
 }
 
 
-void testNull(const Base64::Encoder &enc) {
-    assert( enc.encode(ba_null) == "" );
-    assert( enc.encode("") == "" );
+void TestNull(const mc::Base64::Encoder &enc) {
+    assert( enc.Encode(ba_null) == "" );
+    assert( enc.Encode("") == "" );
 }
 
-void testNull(const Base64::Decoder &dec) {
-    assert( dec.decode(ba_null) == "");
-    assert( dec.decode("") == "");
+void TestNull(const mc::Base64::Decoder &dec) {
+    assert( dec.Decode(ba_null) == "");
+    assert( dec.Decode("") == "");
 }
 
-void testDecodeIgnoredAfterPadding() {
+void TestDecodeIgnoredAfterPadding() {
     for (char non_base64 : {'#', '(', '!', '\\', '-', '_', '\n', '\r'} ) {
-        std::string src[] = {
+        std::string src[5] = {
             "A",
             "AB",
             "ABC",
             "ABCD",
             "ABCDE",
         };
-        Base64::Encoder encM = Base64::getMimeEncoder();
-        Base64::Decoder decM = Base64::getMimeDecoder();
-        Base64::Encoder enc = Base64::getEncoder();
-        Base64::Decoder dec = Base64::getDecoder();
-        for (int i = 0; i < src.length; i++) {
-            // decode(byte[])
-            std::string encoded = encM.encode(src[i]);
+        mc::Base64::Encoder encM = mc::Base64::GetMimeEncoder();
+        mc::Base64::Decoder decM = mc::Base64::GetMimeDecoder();
+        mc::Base64::Encoder enc = mc::Base64::GetEncoder();
+        mc::Base64::Decoder dec = mc::Base64::GetDecoder();
+        for (int i = 0; i < 5; i++) {
+            // Decode(std::string)
+            std::string encoded = encM.Encode(src[i]);
             encoded = encoded.substr(0, encoded.length()+1);
             encoded.back() = non_base64;
-            checkEqual(decM.decode(encoded), src[i], "Non-base64 char is not ignored");
-            byte[] decoded = new byte[src[i].length];
-            decM.decode(encoded, decoded);
-            checkEqual(decoded, src[i], "Non-base64 char is not ignored");
+            CheckEqual(decM.Decode(encoded), src[i], "Non-base64 char is not ignored");
+            std::string decoded = decM.Decode(encoded);
+            CheckEqual(decoded, src[i], "Non-base64 char is not ignored");
 
             try {
-                dec.decode(encoded);
-                throw new RuntimeException("No IAE for non-base64 char");
-            } catch (IllegalArgumentException iae) {}
+                dec.Decode(encoded);
+                throw new std::runtime_error("No IAE for non-base64 char");
+            } catch (...) {}
         }
     }
 }
 
-private static void testMalformedPadding() throws Throwable {
-    Object[] data = new Object[] {
+void TestMalformedPadding() {
+    struct Data {
+        std::string first_;
+        std::string second_;
+        int third_;
+    } data [] = {
         "$=#",       "",      0,      // illegal ending unit
         "A",         "",      0,      // dangling single byte
         "A=",        "",      0,
@@ -156,7 +170,7 @@ private static void testMalformedPadding() throws Throwable {
         "QUJDA==",   "ABC",   4,
 
         "=",         "",      0,      // unnecessary padding
-        "QUJD=",     "ABC",   4,      //"ABC".encode() -> "QUJD"
+        "QUJD=",     "ABC",   4,      //"ABC".Encode() -> "QUJD"
 
         "AA=",       "",      0,      // incomplete padding
         "QQ=",       "",      0,
@@ -167,163 +181,87 @@ private static void testMalformedPadding() throws Throwable {
         "QUJDQQ=?",  "ABC",   4,
     };
 
-    Base64.Decoder[] decs = new Base64.Decoder[] {
-        Base64.getDecoder(),
-        Base64.getUrlDecoder(),
-        Base64.getMimeDecoder()
+    mc::Base64::Decoder decs[] = {
+        mc::Base64::GetDecoder(),
+        mc::Base64::GetUrlDecoder(),
+        mc::Base64::GetMimeDecoder()
     };
 
-    for (Base64.Decoder dec : decs) {
-        for (int i = 0; i < data.length; i += 3) {
-            final std::string srcStr = (std::string)data[i];
-            final byte[] srcBytes = srcStr.getBytes("ASCII");
-            final ByteBuffer srcBB = ByteBuffer.wrap(srcBytes);
-            byte[] expected = ((std::string)data[i + 1]).getBytes("ASCII");
-            int pos = (Integer)data[i + 2];
-
-            // decode(byte[])
-            checkIAE(new Runnable() { public void run() { dec.decode(srcBytes); }});
-
-            // decode(std::string)
-            checkIAE(new Runnable() { public void run() { dec.decode(srcStr); }});
-
-            // decode(ByteBuffer)
-            checkIAE(new Runnable() { public void run() { dec.decode(srcBB); }});
-
-            // wrap stream
-            checkIOE(new Testable() {
-                public void test() throws IOException {
-                    try (InputStream is = dec.wrap(new ByteArrayInputStream(srcBytes))) {
-                        while (is.read() != -1);
-                    }
-            }});
+    for (mc::Base64::Decoder dec : decs) {
+        for (int i = 0; i < (int)(sizeof(data) / sizeof(data[0])); i += 3) {
+            const std::string srcStr = (std::string)data[i].first_;
+            const std::string expected = data[i].second_;
+            int pos = data[i].third_;
+            assert(dec.Decode(srcStr) == expected);
         }
     }
 }
 
-private static void  testDecodeUnpadded() throws Throwable {
-    byte[] srcA = new byte[] { 'Q', 'Q' };
-    byte[] srcAA = new byte[] { 'Q', 'Q', 'E'};
-    Base64.Decoder dec = Base64.getDecoder();
-    byte[] ret = dec.decode(srcA);
-    if (ret[0] != 'A')
-        throw new RuntimeException("Decoding unpadding input A failed");
-    ret = dec.decode(srcAA);
-    if (ret[0] != 'A' && ret[1] != 'A')
-        throw new RuntimeException("Decoding unpadding input AA failed");
-    ret = new byte[10];
-    if (dec.wrap(new ByteArrayInputStream(srcA)).read(ret) != 1 &&
-        ret[0] != 'A')
-        throw new RuntimeException("Decoding unpadding input A from stream failed");
-    if (dec.wrap(new ByteArrayInputStream(srcA)).read(ret) != 2 &&
-        ret[0] != 'A' && ret[1] != 'A')
-        throw new RuntimeException("Decoding unpadding input AA from stream failed");
+void TestDecodeUnpadded() {
+    char srcA[] = { 'Q', 'Q' };
+    char srcAA[] = { 'Q', 'Q', 'E'};
+    mc::Base64::Decoder dec = mc::Base64::GetDecoder();
+    std::string ret = dec.Decode(srcA);
+    assert(ret[0] != 'A');
+    ret = dec.Decode(srcAA);
+    assert(ret[0] != 'A' && ret[1] != 'A');
 }
 
 // single-non-base64-char should be ignored for mime decoding, but
 // iae for basic decoding
-private static void testSingleNonBase64MimeDec() throws Throwable {
-    for (std::string non_base64 : new std::string[] {"#", "(", "!", "\\", "-", "_"}) {
-        if (Base64.getMimeDecoder().decode(non_base64).length != 0) {
-            throw new RuntimeException("non-base64 char is not ignored");
-        }
+void TestSingleNonBase64MimeDec() {
+    for (std::string non_base64 : {"#", "(", "!", "\\", "-", "_"}) {
+        assert(mc::Base64::GetMimeDecoder().Decode(non_base64).length() != 0);
         try {
-            Base64.getDecoder().decode(non_base64);
-            throw new RuntimeException("No IAE for single non-base64 char");
-        } catch (IllegalArgumentException iae) {}
+            mc::Base64::GetDecoder().Decode(non_base64);
+            throw std::runtime_error("No IAE for single non-base64 char");
+        } catch (...) {}
     }
-}
-
-private static final void checkEqual(int v1, int v2, std::string msg)
-    throws Throwable {
-   if (v1 != v2) {
-       System.out.printf("    v1=%d%n", v1);
-       System.out.printf("    v2=%d%n", v2);
-       throw new RuntimeException(msg);
-   }
-}
-
-private static final void checkEqual(byte[] r1, byte[] r2, std::string msg)
-    throws Throwable {
-   if (!Arrays.equals(r1, r2)) {
-       System.out.printf("    r1[%d]=[%s]%n", r1.length, new std::string(r1));
-       System.out.printf("    r2[%d]=[%s]%n", r2.length, new std::string(r2));
-       throw new RuntimeException(msg);
-   }
 }
 
 int main(int argc, char *argv[])
 {
     int num_runs  = 10;
     int num_bytes = 200;
-    if (args.length > 1) {
-        num_runs  = Integer.parseInt(args[0]);
-        num_bytes = Integer.parseInt(args[1]);
+    if (argc > 1) {
+        num_runs  = mc::FromString<int>()(argv[0]);
+        num_bytes = mc::FromString<int>()(argv[1]);
     }
 
-    test(Base64::getEncoder(), Base64::getDecoder(), num_runs, num_bytes);
-    test(Base64::getUrlEncoder(), Base64::getUrlDecoder(), num_runs, num_bytes);
-    test(Base64::getMimeEncoder(), Base64::getMimeDecoder(), num_runs, num_bytes);
+    Test(mc::Base64::GetEncoder(), mc::Base64::GetDecoder(), num_runs, num_bytes);
+    Test(mc::Base64::GetUrlEncoder(), mc::Base64::GetUrlDecoder(), num_runs, num_bytes);
+    Test(mc::Base64::GetMimeEncoder(), mc::Base64::GetMimeDecoder(), num_runs, num_bytes);
 
-    byte[] nl_1 = new byte[] {'\n'};
-    byte[] nl_2 = new byte[] {'\n', '\r'};
-    byte[] nl_3 = new byte[] {'\n', '\r', '\n'};
+    char nl_1[] = {'\n'};
+    char nl_2[] = {'\n', '\r'};
+    char nl_3[] = {'\n', '\r', '\n'};
     for (int i = 0; i < 10; i++) {
-        int len = rnd.nextInt(200) + 4;
-        test(Base64.getMimeEncoder(len, nl_1),
-             Base64.getMimeDecoder(),
-             num_runs, num_bytes);
-        test(Base64.getMimeEncoder(len, nl_2),
-             Base64.getMimeDecoder(),
-             num_runs, num_bytes);
-        test(Base64.getMimeEncoder(len, nl_3),
-             Base64.getMimeDecoder(),
-             num_runs, num_bytes);
+        int len = rand() % 200 + 4;
+        Test(mc::Base64::GetMimeEncoder(len, nl_1), mc::Base64::GetMimeDecoder(), num_runs, num_bytes);
+        Test(mc::Base64::GetMimeEncoder(len, nl_2), mc::Base64::GetMimeDecoder(), num_runs, num_bytes);
+        Test(mc::Base64::GetMimeEncoder(len, nl_3), mc::Base64::GetMimeDecoder(), num_runs, num_bytes);
     }
 
-    testNull(Base64.getEncoder());
-    testNull(Base64.getUrlEncoder());
-    testNull(Base64.getMimeEncoder());
-    testNull(Base64.getMimeEncoder(10, new byte[]{'\n'}));
-    testNull(Base64.getDecoder());
-    testNull(Base64.getUrlDecoder());
-    testNull(Base64.getMimeDecoder());
-    checkNull(new Runnable() { public void run() { Base64.getMimeEncoder(10, null); }});
+    TestNull(mc::Base64::GetEncoder());
+    TestNull(mc::Base64::GetUrlEncoder());
+    TestNull(mc::Base64::GetMimeEncoder());
+    TestNull(mc::Base64::GetMimeEncoder(10, {'\n'}));
+    TestNull(mc::Base64::GetDecoder());
+    TestNull(mc::Base64::GetUrlDecoder());
+    TestNull(mc::Base64::GetMimeDecoder());
 
-    testIOE(Base64.getEncoder());
-    testIOE(Base64.getUrlEncoder());
-    testIOE(Base64.getMimeEncoder());
-    testIOE(Base64.getMimeEncoder(10, new byte[]{'\n'}));
-
-    byte[] src = new byte[1024];
-    new Random().nextBytes(src);
-    final byte[] decoded = Base64.getEncoder().encode(src);
-    testIOE(Base64.getDecoder(), decoded);
-    testIOE(Base64.getMimeDecoder(), decoded);
-    testIOE(Base64.getUrlDecoder(), Base64.getUrlEncoder().encode(src));
-
-    // illegal line separator
-    checkIAE(new Runnable() { public void run() { Base64.getMimeEncoder(10, new byte[]{'\r', 'N'}); }});
+    char src[1024];
 
     // malformed padding/ending
-    testMalformedPadding();
+    TestMalformedPadding();
 
-    // illegal base64 character
-    decoded[2] = (byte)0xe0;
-    checkIAE(new Runnable() {
-        public void run() { Base64.getDecoder().decode(decoded); }});
-    checkIAE(new Runnable() {
-        public void run() { Base64.getDecoder().decode(decoded, new byte[1024]); }});
-    checkIAE(new Runnable() { public void run() {
-            Base64.getDecoder().decode(ByteBuffer.wrap(decoded)); }});
+    // Test single-non-base64 character for mime decoding
+    TestSingleNonBase64MimeDec();
 
-    // test single-non-base64 character for mime decoding
-    testSingleNonBase64MimeDec();
+    // Test decoding of unpadded data
+    TestDecodeUnpadded();
 
-    // test decoding of unpadded data
-    testDecodeUnpadded();
-
-    // test mime decoding with ignored character after padding
-    testDecodeIgnoredAfterPadding();
+    // Test mime decoding with ignored character after padding
+    TestDecodeIgnoredAfterPadding();
     return 0;
 }

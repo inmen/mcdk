@@ -8,7 +8,6 @@
 #include <stdexcept>
 #include <algorithm>
 #include <boost/noncopyable.hpp>
-#include "mcdk/util/throw.h"
 
 namespace mc {
 
@@ -26,7 +25,7 @@ public:
         static const Encoder & RFC2045();
 
     public:
-        std::string encode(const std::string &src) const throw(std::invalid_argument);
+        std::string Encode(const std::string &src) const throw(std::invalid_argument);
 
     private:
         bool is_url_;
@@ -51,8 +50,8 @@ public:
         static const int32_t MIME_LINE_MAX_;
         static const std::string CRLF_;
 
-        int32_t outLength(int32_t src_len) const;
-        int32_t encode0(const char *src, int32_t off, int32_t end, char *dst) const throw(std::invalid_argument);
+        int32_t OutLength(int32_t src_len) const;
+        int32_t Encode0(const char *src, int32_t off, int32_t end, char *dst) const throw(std::invalid_argument);
     }; // class Encoder
 
     class Decoder {
@@ -66,7 +65,7 @@ public:
         static const Decoder & RFC2045();
 
     public:
-        std::string decode(const std::string &src) const throw(std::invalid_argument);
+        std::string Decode(const std::string &src) const throw(std::invalid_argument);
 
     private:
         bool is_url_;
@@ -97,18 +96,18 @@ public:
         // static call Constructor::Constructor()
         static Constructor constructor_;
 
-        int32_t outLength(const char *src, int32_t sp, int32_t sl) const throw(std::invalid_argument);
-        int32_t decode0(const char *src, int32_t sp, int32_t sl, char *dst) const throw(std::invalid_argument);
+        int32_t OutLength(const char *src, int32_t sp, int32_t sl) const throw(std::invalid_argument);
+        int32_t Decode0(const char *src, int32_t sp, int32_t sl, char *dst) const throw(std::invalid_argument);
     }; // class Decoder
 
 public:
-    static const Encoder& getEncoder();
-    static const Encoder& getUrlEncoder();
-    static const Encoder& getMimeEncoder();
-    static Encoder getMimeEncoder(int32_t line_length, const std::string &line_separator);
-    static const Decoder& getDecoder();
-    static const Decoder& getUrlDecoder();
-    static const Decoder& getMimeDecoder();
+    static const Encoder& GetEncoder();
+    static const Encoder& GetUrlEncoder();
+    static const Encoder& GetMimeEncoder();
+    static Encoder GetMimeEncoder(int32_t line_length, const std::string &line_separator);
+    static const Decoder& GetDecoder();
+    static const Decoder& GetUrlDecoder();
+    static const Decoder& GetMimeDecoder();
 };
 
 }

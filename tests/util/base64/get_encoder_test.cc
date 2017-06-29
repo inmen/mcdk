@@ -7,19 +7,19 @@
 void testEncodeToString(const mc::Base64::Encoder &encoder) {
     const char * bytes_in = "fo";
     std::cout << MC_PP_LOC << std::endl;
-    std::string s = encoder.encode(bytes_in);
+    std::string s = encoder.Encode(bytes_in);
     assert(s.find("$$$") == std::string::npos);
 }
 
 void testEncodeToStringWithLongInputData(const mc::Base64::Encoder &encoder) {
     const char *secondTestBuffer = "api/java_util/Base64/index.html#GetEncoderMimeCustom[noLineSeparatorInEncodedString]";
-    std::string s = encoder.encode(secondTestBuffer);
+    std::string s = encoder.Encode(secondTestBuffer);
     std::cout << MC_PP_LOC << std::endl;
     assert(s.find("$$$") == std::string::npos);
 }
 
 int main(int argc, char *argv[]) {
-    const mc::Base64::Encoder encoder = mc::Base64::getMimeEncoder(0, "$$$");
+    const mc::Base64::Encoder encoder = mc::Base64::GetMimeEncoder(0, "$$$");
     testEncodeToString(encoder);
     testEncodeToStringWithLongInputData(encoder);
     return 0;

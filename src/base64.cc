@@ -5,7 +5,8 @@
 #include <stdexcept>
 #include <cassert>
 #include <algorithm>
-#include "mcdk/util/throw.h"
+#include "mcdk/util/string.h"
+#include "mcdk/util/preprocessor.h"
 
 namespace mc {
 
@@ -48,17 +49,17 @@ const char Base64::Encoder::to_base64_url_[64] = {
 const int32_t Base64::Encoder::MIME_LINE_MAX_ = 76 ;
 const std::string Base64::Encoder::CRLF_ = "\r\n";
 
-std::string Base64::Encoder::encode(const std::string &src) const throw(std::invalid_argument) {
-    int32_t len = outLength((int32_t)src.length());
+std::string Base64::Encoder::Encode(const std::string &src) const throw(std::invalid_argument) {
+    int32_t len = OutLength((int32_t)src.length());
     std::string dst;
-    dst.resize(len);
-    int32_t ret = encode0(src.data(), 0, src.length(), (char*)dst.data());
+    dst.resize((size_t)len);
+    int32_t ret = Encode0(src.data(), 0, (int32_t)src.length(), (char*)dst.data());
     if (ret != dst.length())
-        return dst.substr(0, ret);
+        return dst.substr(0, (size_t)ret);
     return dst;
 }
 
-int32_t Base64::Encoder::outLength(int32_t src_len) const {
+int32_t Base64::Encoder::OutLength(int32_t src_len) const {
     int32_t len = 0;
     if (padding_) {
         len = 4 * ((src_len + 2) / 3);
@@ -70,7 +71,7 @@ int32_t Base64::Encoder::outLength(int32_t src_len) const {
         len += (len - 1) / line_max_ * (new_line_.length());
     return len;
 }
-int32_t Base64::Encoder::encode0(const char *src, int32_t off, int32_t end, char *dst) const throw(std::invalid_argument) {
+int32_t Base64::Encoder::Encode0(const char *src, int32_t off, int32_t end, char *dst) const throw(std::invalid_argument) {
     char *base64 = is_url_ ? (char*)to_base64_url_ : (char*)to_base64_;
     int32_t sp = off;
     int32_t slen = (end - off) / 3 * 3;
@@ -81,9 +82,9 @@ int32_t Base64::Encoder::encode0(const char *src, int32_t off, int32_t end, char
     while (sp < sl) {
         int32_t sl0 = std::min(sp + slen, sl);
         for (int32_t sp0 = sp, dp0 = dp; sp0 < sl0;) {
-            int32_t bits = (src[sp0++] & 0xff) << 16 |
-                           (src[sp0++] & 0xff) << 8 |
-                           (src[sp0++] & 0xff);
+            int32_t bits = ((src[sp0++] & 0xff) << 16) |
+                    ((src[sp0++] & 0xff) << 8) |
+                    (src[sp0++] & 0xff);
             dst[dp0++] = base64[(bits >> 18) & 0x3f];
             dst[dp0++] = base64[(bits >> 12) & 0x3f];
             dst[dp0++] = base64[(bits >> 6) & 0x3f];
@@ -100,16 +101,16 @@ int32_t Base64::Encoder::encode0(const char *src, int32_t off, int32_t end, char
     }
     if (sp < end) {               // 1 or 2 leftover char
         int32_t b0 = src[sp++] & 0xff;
-        dst[dp++] = (char) base64[b0 >> 2];
+        dst[dp++] = base64[b0 >> 2];
         if (sp == end) {
-            dst[dp++] = (char) base64[(b0 << 4) & 0x3f];
+            dst[dp++] = base64[(b0 << 4) & 0x3f];
             if (padding_) {
                 dst[dp++] = '=';
                 dst[dp++] = '=';
             }
         } else {
             int b1 = src[sp++] & 0xff;
-            dst[dp++] = base64[(b0 << 4) & 0x3f | (b1 >> 4)];
+            dst[dp++] = base64[((b0 << 4) & 0x3f) | (b1 >> 4)];
             dst[dp++] = base64[(b1 << 2) & 0x3f];
             if (padding_) {
                 dst[dp++] = '=';
@@ -141,17 +142,17 @@ const Base64::Decoder & Base64::Decoder::RFC2045() {
 int Base64::Decoder::from_base64_[256] = { 0 };
 int Base64::Decoder::from_base64_url_[256] = { 0 };
 
-std::string Base64::Decoder::decode(const std::string &src) const throw(std::invalid_argument) {
-    int32_t len = outLength(src.data(), 0, src.length());
+std::string Base64::Decoder::Decode(const std::string &src) const throw(std::invalid_argument) {
+    int32_t len = OutLength(src.data(), 0, (int32_t)src.length());
     std::string dst;
-    dst.resize(len);
-    int32_t ret = decode0(src.data(), 0, src.length(), (char*)dst.data());
+    dst.resize((size_t)len);
+    int32_t ret = Decode0(src.data(), 0, (int32_t)src.length(), (char*)dst.data());
     if (ret != dst.length())
-        return dst.substr(0, ret);
+        return dst.substr(0, (size_t)ret);
     return dst;
 }
 
-int32_t Base64::Decoder::outLength(const char *src, int32_t sp, int32_t sl) const throw(std::invalid_argument) {
+int32_t Base64::Decoder::OutLength(const char *src, int32_t sp, int32_t sl) const throw(std::invalid_argument) {
     int *base64 = is_url_ ? (int*)from_base64_url_ : (int*)from_base64_;
     int32_t paddings = 0;
     int32_t len = sl - sp;
@@ -160,7 +161,7 @@ int32_t Base64::Decoder::outLength(const char *src, int32_t sp, int32_t sl) cons
     if (len < 2) {
         if (is_mime_ and base64[0] == -1)
             return 0;
-        MC_THROW(std::invalid_argument, "Input src should at least have 2 bytes for base64 bytes");
+        throw std::invalid_argument(MC_PP_LOC + "Input src should at least have 2 bytes for base64 bytes");
     }
     if (is_mime_) {
         // scan all bytes to fill out all non-alphabet. a performance
@@ -188,7 +189,7 @@ int32_t Base64::Decoder::outLength(const char *src, int32_t sp, int32_t sl) cons
     return 3 * ((len + 3) / 4) - paddings;
 }
 
-int32_t Base64::Decoder::decode0(const char *src, int32_t sp, int32_t sl, char *dst) const throw(std::invalid_argument) {
+int32_t Base64::Decoder::Decode0(const char *src, int32_t sp, int32_t sl, char *dst) const throw(std::invalid_argument) {
     int *base64 = is_url_ ? (int*)from_base64_url_ : (int*)from_base64_;
     int32_t dp = 0;
     int32_t bits = 0;
@@ -202,15 +203,15 @@ int32_t Base64::Decoder::decode0(const char *src, int32_t sp, int32_t sl, char *
                 // x     to be handled together with non-padding case
                 // xx=   shiftto==6&&sp==sl missing last =
                 // xx=y  shiftto==6 last is not =
-                if (shiftto == 6 and (sp == sl or src[sp++] != '=') or shiftto == 18) {
-                    MC_THROW( std::invalid_argument, "Input char array has wrong 4-char ending unit" );
+                if ((shiftto == 6 and (sp == sl or src[sp++] != '=')) or shiftto == 18) {
+                    throw std::invalid_argument(MC_PP_LOC + "Input char array has wrong 4-char ending unit");
                 }
                 break;
             }
             if (is_mime_)    // skip if for rfc2045
                 continue;
             else
-                MC_THROW( std::invalid_argument, "Illegal base64 character " + toString(src[sp - 1]));
+                throw std::invalid_argument(MC_PP_LOC + "Illegal base64 character " + ToString(src[sp - 1]));
         }
         bits |= (b << shiftto);
         shiftto -= 6;
@@ -230,33 +231,33 @@ int32_t Base64::Decoder::decode0(const char *src, int32_t sp, int32_t sl, char *
         dst[dp++] = (char)(bits >>  8);
     } else if (shiftto == 12) {
         // dangling single "x", incorrectly encoded.
-        MC_THROW( std::invalid_argument, "Last unit does not have enough valid bits");
+        throw std::invalid_argument(MC_PP_LOC + "Last unit does not have enough valid bits");
     }
     // anything left is invalid, if is not MIME.
     // if MIME, ignore all non-base64 character
     while (sp < sl) {
         if (is_mime_ and base64[src[sp++]] < 0)
             continue;
-        MC_THROW(std::invalid_argument, "Input char array has incorrect ending char at " + toString(sp));
+        throw std::invalid_argument(MC_PP_LOC + "Input char array has incorrect ending char at " + ToString(sp));
     }
     return dp;
 }
 
-const Base64::Encoder& Base64::getEncoder() {
+const Base64::Encoder& Base64::GetEncoder() {
     return Encoder::RFC4648();
 }
-const Base64::Encoder& Base64::getUrlEncoder() {
+const Base64::Encoder& Base64::GetUrlEncoder() {
     return Encoder::RFC4648_URL_SAFE();
 }
-const Base64::Encoder& Base64::getMimeEncoder() {
+const Base64::Encoder& Base64::GetMimeEncoder() {
     return Encoder::RFC2045();
 }
-Base64::Encoder Base64::getMimeEncoder(int32_t line_length, const std::string &line_separator) {
+Base64::Encoder Base64::GetMimeEncoder(int32_t line_length, const std::string &line_separator) {
     assert(line_separator.length() > 0);
     int *base64 = (int*)Base64::Decoder::from_base64_;
     for (const char &b : line_separator) {
         if (base64[b & 0xff] != -1)
-            MC_THROW(std::invalid_argument, "Illegal base64 line separator character 0x" + toString(b));
+            throw std::invalid_argument(MC_PP_LOC + "Illegal base64 line separator character 0x" + ToString(b));
     }
     if (line_length <= 0) {
         return Encoder::RFC4648();
@@ -264,13 +265,13 @@ Base64::Encoder Base64::getMimeEncoder(int32_t line_length, const std::string &l
     return Base64::Encoder(false, line_separator, line_length >> 2 << 2, true);
 }
 
-const Base64::Decoder& Base64::getDecoder() {
+const Base64::Decoder& Base64::GetDecoder() {
     return Decoder::RFC4648();
 }
-const Base64::Decoder& Base64::getUrlDecoder() {
+const Base64::Decoder& Base64::GetUrlDecoder() {
     return Decoder::RFC4648_URL_SAFE();
 }
-const Base64::Decoder& Base64::getMimeDecoder() {
+const Base64::Decoder& Base64::GetMimeDecoder() {
     return Decoder::RFC2045();
 }
 

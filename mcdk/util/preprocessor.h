@@ -3,8 +3,11 @@
 
 #include "mcdk/util/string.h"
 
-#define MC_PP_LOC (mc::toString(__FILE__) + ":" + mc::toString(__LINE__) + " " + __FUNCTION__)
-
+#ifdef __GNUC__
+#   define MC_PP_LOC (mc::ToString(__FILE__) + ":" + mc::ToString(__LINE__) + " " + __PRETTY_FUNCTION__)
+#else
+#   define MC_PP_LOC (mc::ToString(__FILE__) + ":" + mc::ToString(__LINE__) + " " + __FUNCTION__)
+#endif
 
 
 #endif
