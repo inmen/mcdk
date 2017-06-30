@@ -120,20 +120,35 @@ int32_t Base64::Encoder::Encode0(const char *src, int32_t off, int32_t end, char
     return dp;
 }
 
+//Base64::Decoder::Constructor constructor_;
+const Base64::Decoder Base64::Decoder::RFC4648 = Base64::Decoder(false, false);
+const Base64::Decoder Base64::Decoder::RFC4648_URL_SAFE = Base64::Decoder(true, false);
+const Base64::Decoder Base64::Decoder::RFC2045 = Base64::Decoder(false, true);
+int Base64::Decoder::from_base64_[256] = { 0 };
+int Base64::Decoder::from_base64_url_[256] = { 0 };
+Base64::Decoder::Constructor Base64::Decoder::constructor_ = Base64::Decoder::Constructor();
+
+Base64::Decoder::Constructor::Constructor(){
+    for (auto &i : from_base64_) {
+        i = -1;
+    }
+    for (int i = 0; i < sizeof(Encoder::to_base64_) / sizeof(Encoder::to_base64_[0]); i++) {
+    from_base64_[ Encoder::to_base64_[i] ] = i;
+    }
+    from_base64_['='] = -2;
+    for (auto &i : from_base64_url_) {
+    i = -1;
+    }
+    for (int i = 0; i < sizeof(Encoder::to_base64_url_) / sizeof(Encoder::to_base64_url_[0]); i++) {
+    from_base64_url_[ Encoder::to_base64_url_[i] ] = i;
+    }
+    from_base64_url_['='] = -2;
+}
+
 Base64::Decoder::Decoder(bool is_url, bool is_mime)
         : is_url_(is_url),
           is_mime_(is_mime) {
 }
-//Base64::Decoder::Constructor constructor_;
-
-const Base64::Decoder Base64::Decoder::RFC4648 = Base64::Decoder(false, false);
-
-const Base64::Decoder Base64::Decoder::RFC4648_URL_SAFE = Base64::Decoder(true, false);
-
-const Base64::Decoder Base64::Decoder::RFC2045 = Base64::Decoder(false, true);
-
-int Base64::Decoder::from_base64_[256] = { 0 };
-int Base64::Decoder::from_base64_url_[256] = { 0 };
 
 std::string Base64::Decoder::Decode(const std::string &src) const throw(std::invalid_argument) {
     int32_t len = OutLength(src.data(), 0, (int32_t)src.length());

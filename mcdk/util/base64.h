@@ -88,22 +88,7 @@ private:
     static int from_base64_url_[256];
 
     struct Constructor {
-        Constructor() {
-            for (auto &i : from_base64_) {
-                i = -1;
-            }
-            for (int i = 0; i < sizeof(Encoder::to_base64_) / sizeof(Encoder::to_base64_[0]); i++) {
-                from_base64_[ Encoder::to_base64_[i] ] = i;
-            }
-            from_base64_['='] = -2;
-            for (auto &i : from_base64_url_) {
-                i = -1;
-            }
-            for (int i = 0; i < sizeof(Encoder::to_base64_url_) / sizeof(Encoder::to_base64_url_[0]); i++) {
-                from_base64_url_[ Encoder::to_base64_url_[i] ] = i;
-            }
-            from_base64_url_['='] = -2;
-        }
+        explicit Constructor();
     };
     // static call Constructor::Constructor()
     static Constructor constructor_;
