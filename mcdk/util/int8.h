@@ -17,6 +17,7 @@ public:
     }
 
     MC_CAST(ToUInt8, int8_t, uint8_t, 0, UINT8_MAX)
+    MC_CAST(FromUInt8, uint8_t, int8_t, INT8_MIN, INT8_MAX)
     MC_CAST(ToInt16, int8_t, int16_t, INT16_MIN, INT16_MAX)
     MC_CAST(FromInt16, int16_t, int8_t, INT8_MIN, INT8_MAX)
     MC_CAST(ToUInt16, int8_t, uint16_t, 0, UINT16_MAX)
@@ -34,6 +35,7 @@ public:
 class UInt8 {
 public:
     MC_CAST(ToInt8, uint8_t, int8_t, INT8_MIN, INT8_MAX)
+    MC_CAST(FromInt8, int8_t, uint8_t, 0, UINT8_MAX)
     MC_CAST(ToInt16, int8_t, int16_t, INT16_MIN, INT16_MAX)
     MC_CAST(FromInt16, int16_t, int8_t, INT8_MIN, INT8_MAX)
     MC_CAST(ToUInt16, int8_t, uint16_t, 0, UINT16_MAX)

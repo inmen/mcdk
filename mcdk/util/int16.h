@@ -8,109 +8,48 @@ namespace mc {
 
 class Int16 {
 public:
-    static int8_t ToInt8(int16_t i) {
-        if (i < INT8_MIN) return INT8_MIN;
-        if (i > INT8_MAX) return INT8_MAX;
-        return static_cast<int8_t>(i);
+
+#define MC_CAST(func_name, from_type, to_type, to_min, to_max) \
+    static to_type func_name(from_type i) {     \
+        if (i > to_max) return to_max;  \
+        if (i < to_min) return to_min;  \
+        return static_cast<to_type>(i);     \
     }
-    static int16_t FromInt8(int8_t i) { return static_cast<int16_t>(i); }
-    static uint8_t ToUInt8(int16_t i) {
-        if (i < 0) return 0;
-        if (i > )
-        return static_cast<uint8_t>(i);
-    }
-    static int8_t FromUInt8(uint8_t i) {
-        if (i > INT8_MAX) return INT8_MAX;
-        return static_cast<int8_t>(i);
-    }
-    static int16_t ToInt16(int8_t i) { return static_cast<int16_t>(i); }
-    static int8_t FromInt16(int16_t i) {
-        if (i < INT8_MIN) return INT8_MIN;
-        if (i > INT8_MAX) return INT8_MAX;
-        return static_cast<int8_t>(i);
-    }
-    static uint16_t ToUInt16(int8_t i) {
-        if (i < 0) return 0;
-        return static_cast<uint16_t>(i);
-    }
-    static int8_t FromUInt16(uint16_t i) {
-        if (i > INT8_MAX) return INT8_MAX;
-        return static_cast<int8_t>(i);
-    }
-    static int32_t ToInt32(int8_t i) { return static_cast<int32_t>(i); }
-    static int8_t FromInt32(int32_t i) {
-        if (i < INT8_MIN) return INT8_MIN;
-        if (i > INT8_MAX) return INT8_MAX;
-        return static_cast<int8_t>(i);
-    }
-    static uint32_t ToUInt32(int8_t i) {
-        if (i < 0) return 0;
-        return static_cast<uint32_t>(i);
-    }
-    static int8_t FromUInt32(uint32_t i) {
-        if (i > INT8_MAX) return INT8_MAX;
-        return static_cast<int8_t>(i);
-    }
-    static int64_t ToInt64(int8_t i) { return static_cast<int64_t>(i); }
-    static int8_t FromInt64(int64_t i) {
-        if (i < INT8_MIN) return INT8_MIN;
-        if (i > INT8_MAX) return INT8_MAX;
-        return static_cast<int8_t>(i);
-    }
-    static uint64_t ToUInt64(int8_t i) {
-        if (i < 0) return 0;
-        return static_cast<uint64_t>(i);
-    }
-    static int8_t FromUInt64(uint64_t i) {
-        if (i > INT8_MAX) return INT8_MAX;
-        return static_cast<int8_t>(i);
-    }
+
+    MC_CAST(ToInt8, int16_t, int8_t, INT8_MIN, INT8_MAX)
+    MC_CAST(FromInt8, int8_t, int16_t, INT16_MIN, INT16_MAX)
+    MC_CAST(ToUInt8, int16_t, uint8_t, 0, UINT8_MAX)
+    MC_CAST(FromUInt8, uint8_t, int16_t, INT16_MIN, INT16_MAX)
+    MC_CAST(ToUInt16, int16_t, uint16_t, 0, UINT16_MAX)
+    MC_CAST(FromUInt16, uint16_t, int16_t, INT16_MIN, INT16_MAX)
+    MC_CAST(ToInt32, int16_t, int32_t, INT32_MIN, INT32_MAX)
+    MC_CAST(FromInt32, int32_t, int16_t, INT16_MIN, INT16_MAX)
+    MC_CAST(ToUInt32, int16_t, uint32_t, 0, UINT32_MAX)
+    MC_CAST(FromUInt32, uint32_t, int16_t, INT16_MIN, INT16_MAX)
+    MC_CAST(ToInt64, int16_t, int64_t, INT64_MIN, INT64_MAX)
+    MC_CAST(FromInt64, int64_t, int16_t, INT16_MIN, INT16_MAX)
+    MC_CAST(ToUInt64, int16_t, uint64_t, 0, UINT64_MAX)
+    MC_CAST(FromUInt64, uint64_t, int16_t, INT16_MIN, INT16_MAX)
 };
 
 class UInt16 {
 public:
-    static int8_t ToInt8(uint8_t i) {
-        if (i > INT8_MAX) return INT8_MAX;
-        return static_cast<int8_t>(i);
-    }
-    static uint8_t FromInt8(int8_t i) {
-        if (i < 0) return 0;
-        return static_cast<uint8_t>(i);
-    }
-    static uint8_t ToUInt8(uint8_t i) { return i; }
-    static uint8_t FromUInt8(uint8_t i) { return i; }
-    static int16_t ToInt16(uint8_t i) { return static_cast<int16_t>(i); }
-    static uint8_t FromInt16(int16_t i) {
-        if (i < 0) return 0;
-        return static_cast<uint8_t>(i);
-    }
-    static uint16_t ToUInt16(uint8_t i) { return static_cast<uint16_t>(i); }
-    static uint8_t FromUInt16(uint16_t i) {
-        if (i > UINT8_MAX) return UINT8_MAX;
-        return static_cast<uint8_t>(i);
-    }
-    static int32_t ToInt32(int8_t i) { return static_cast<int32_t>(i); }
-    static uint8_t FromInt32(int32_t i) {
-        if (i < 0) return 0;
-        if (i > UINT8_MAX) return UINT8_MAX;
-        return static_cast<uint8_t>(i);
-    }
-    static uint32_t ToUInt32(uint8_t i) { return static_cast<uint32_t>(i); }
-    static uint8_t FromUInt32(uint32_t i) {
-        if (i > UINT8_MAX) return UINT8_MAX;
-        return static_cast<uint8_t>(i);
-    }
-    static int64_t ToInt64(uint8_t i) { return static_cast<int64_t>(i); }
-    static uint8_t FromInt64(int64_t i) {
-        if (i < 0) return 0;
-        if (i > UINT8_MAX) return UINT8_MAX;
-        return static_cast<uint8_t>(i);
-    }
-    static uint64_t ToUInt64(uint8_t i) { return static_cast<uint64_t>(i); }
-    static uint8_t FromUInt64(uint64_t i) {
-        if (i > UINT8_MAX) return UINT8_MAX;
-        return static_cast<uint8_t>(i);
-    }
+    MC_CAST(ToInt8, uint16_t, int8_t, INT8_MIN, INT8_MAX)
+    MC_CAST(FromInt8, int8_t, uint16_t, 0, UINT16_MAX)
+    MC_CAST(ToUInt8, uint16_t, uint8_t, 0, UINT8_MAX)
+    MC_CAST(FromUInt8, uint8_t, uint16_t, 0, UINT16_MAX)
+    MC_CAST(ToInt16, uint16_t, int16_t, INT16_MIN, INT16_MAX)
+    MC_CAST(FromInt16, int16_t, uint16_t, 0, UINT16_MAX)
+    MC_CAST(ToInt32, uint16_t, int32_t, INT32_MIN, INT32_MAX)
+    MC_CAST(FromInt32, int32_t, uint16_t, 0, UINT16_MAX)
+    MC_CAST(ToUInt32, uint16_t, uint32_t, 0, UINT32_MAX)
+    MC_CAST(FromUInt32, uint32_t, uint16_t, 0, UINT16_MAX)
+    MC_CAST(ToInt64, uint16_t, int64_t, INT64_MIN, INT64_MAX)
+    MC_CAST(FromInt64, int64_t, uint16_t, 0, UINT16_MAX)
+    MC_CAST(ToUInt64, uint16_t, uint64_t, 0, UINT64_MAX)
+    MC_CAST(FromUInt64, uint64_t, uint16_t, 0, UINT16_MAX)
+
+#undef MC_CAST
 };
 
 }
